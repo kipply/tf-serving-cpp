@@ -16,8 +16,10 @@ int main(int argc, char** argv) {
   tensorflow::serving::GetModelMetadataRequest get_model_metadata_request;
   tensorflow::serving::ModelSpec* model_spec =
       get_model_metadata_request.mutable_model_spec();
-  model_spec->set_name("model_name");
-  get_model_metadata_request.add_metadata_field("signature_def");
+  model_spec->set_name("model_name");  // specify your model name here
+  get_model_metadata_request.add_metadata_field(
+      "signature_def");  // this is actually the only valid string for this
+                         // field
 
   tensorflow::serving::GetModelMetadataResponse get_model_metadata_response;
 
@@ -35,7 +37,8 @@ int main(int argc, char** argv) {
   sig_msg.UnpackTo(&sig_def);
   const auto& sig_map = sig_def.signature_def();
 
-  if (sig_map.find("some_signature") == sig_map.end()) {
+  if (sig_map.find("some_signature") ==
+      sig_map.end()) {  // specify your signature name here
     std::cerr << "model appears to be missing the signature" << std::endl;
     return -1;
   }
@@ -48,8 +51,10 @@ int main(int argc, char** argv) {
   tensorflow::serving::PredictResponse predict_response;
   grpc::ClientContext cli_context;
 
-  predict_request.mutable_model_spec()->set_name("model_name");
-  predict_request.mutable_model_spec()->set_signature_name("some_signature");
+  predict_request.mutable_model_spec()->set_name(
+      "model_name");  // specify model name again
+  predict_request.mutable_model_spec()->set_signature_name(
+      "some_signature");  // specify signature again
   google::protobuf::Map<std::string, tensorflow::TensorProto>& inputs =
       *predict_request.mutable_inputs();
 
@@ -58,7 +63,9 @@ int main(int argc, char** argv) {
   input_tensor.mutable_tensor_shape()->add_dim()->set_size(2);
   input_tensor.add_int_val(1);
   input_tensor.add_int_val(2);
-  inputs.insert({"input_key", input_tensor});
+  inputs.insert(
+      {"input_key",
+       input_tensor});  // specify your input keys and repeat as necessary
 
   const grpc::Status& predict_status = prediction_service_stub->Predict(
       &cli_context, predict_request, &predict_response);
